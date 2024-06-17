@@ -1,0 +1,29 @@
+import os
+import subprocess
+from datetime import datetime
+import logging
+
+# Setting up the logging configuration
+logging.basicConfig(filename='backup.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Define source directory and remote server details
+SOURCE_DIR = '/path/to/source/directory'
+REMOTE_USER = 'remote_user'
+REMOTE_HOST = 'remote_host'
+REMOTE_DIR = '/path/to/remote/directory'
+
+def backup_directory():
+    try:
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        archive_name = f'backup_{timestamp}.tar.gz'
+        subprocess.check_call(['tar', 'czf', archive_name, SOURCE_DIR])
+        subprocess.check_call(['scp', archive_name, f'{REMOTE_USER}@{REMOTE_HOST}:{REMOTE_DIR}'])
+        logging.info(f'Backup successful: {archive_name}')
+        os.remove(archive_name)  # Clean up the local archive after transfer
+    except subprocess.CalledProcessError as e:
+        logging.error(f'Backup failed: {e}')
+    except Exception as e:
+        logging.error(f'Unexpected error: {e}')
+
+if __name__ == "__main__":
+    backup_directory()
